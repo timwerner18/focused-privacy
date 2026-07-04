@@ -201,9 +201,21 @@ header{
 
 .hero-stats{display:flex;gap:clamp(24px,6vw,72px);margin-top:64px;flex-wrap:wrap;justify-content:center}
 .stat{text-align:center}
-.stat b{display:block;font-size:clamp(1.5rem,2.4vw,1.9rem);font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
-.stat b .plus{color:var(--blue-2)}
-.stat span{color:var(--grey-2);font-size:.85rem;letter-spacing:.03em}
+.stat b{
+  display:block;
+  font-size:clamp(2.1rem,3.6vw,2.8rem);
+  font-weight:800;color:#fff;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 30px rgba(255,255,255,.3);
+  animation:statIn .8s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+.stat:nth-child(1) b{animation-delay:.25s}
+.stat:nth-child(2) b{animation-delay:.5s}
+.stat:nth-child(3) b{animation-delay:.75s}
+@keyframes statIn{from{opacity:0;transform:scale(.4) translateY(16px)}to{opacity:1;transform:none}}
+.stat b .plus{color:#fff}
+.stat > span{color:var(--grey);font-size:.9rem;letter-spacing:.03em}
+.stat b span{font-size:inherit;color:#fff}
 
 .scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--grey-2);animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
@@ -521,7 +533,7 @@ footer{border-top:1px solid var(--line);padding:54px clamp(18px,5vw,48px) 90px;b
 
   <div class="hero-stats">
     <div class="stat"><b><span data-count="100">0</span><span class="plus">%</span></b><span>Einsatz bei jedem Auto</span></div>
-    <div class="stat"><b>5<span class="plus">★</span></b><span>Google-Bewertung</span></div>
+    <div class="stat"><b><span data-count="5">0</span><span class="plus">★</span></b><span>Google-Bewertung</span></div>
     <div class="stat"><b><span data-count="24">0</span><span class="plus">h</span></b><span>Antwort meist am selben Tag</span></div>
   </div>
 
