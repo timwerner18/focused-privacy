@@ -1,0 +1,19 @@
+{%- comment -%}
+  Newsletter-Popup: Exit-Intent (Desktop) / Timer-Fallback (Mobile), einmalig pro 30 Tage.
+  DSGVO: Double-Opt-in-Hinweis. Logik in theme.js → initNewsletterPopup().
+{%- endcomment -%}
+<div class="nl-popup" data-nl-popup hidden role="dialog" aria-modal="true" aria-labelledby="NlPopupTitle">
+  <div class="nl-popup__overlay" data-nl-close></div>
+  <div class="nl-popup__box">
+    <button type="button" class="nl-popup__close" data-nl-close aria-label="Schließen">×</button>
+    <span class="badge badge--price">-5 %</span>
+    <h2 id="NlPopupTitle">5 % auf deine erste Bestellung</h2>
+    <p class="text-muted">Melde dich für unseren Newsletter an und sichere dir 5 % Rabatt auf deine erste Bestellung – plus News zu Drops & Deals aus dem Kiosk.</p>
+    {%- form 'customer', class: 'newsletter-form' -%}
+      <input type="hidden" name="contact[tags]" value="newsletter,popup">
+      <input type="email" name="contact[email]" placeholder="deine@email.de" required aria-label="E-Mail-Adresse">
+      <button type="submit" class="btn btn--pink">Sichern</button>
+    {%- endform -%}
+    <p class="newsletter-hint">Anmeldung mit Double-Opt-in: Du bekommst zuerst eine Bestätigungs-Mail. Abmeldung jederzeit möglich. Infos in unserer <a href="/pages/datenschutz">Datenschutzerklärung</a>.</p>
+  </div>
+</div>

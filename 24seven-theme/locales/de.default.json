@@ -1,0 +1,41 @@
+{
+  "general": {
+    "meta": {
+      "title": "24SEVEN E-Kiosk – Dein Kiosk. Jetzt auch online.",
+      "description": "Kiosk online bestellen: Vapes, Snacks, Getränke & mehr – 24/7 bestellbar, Versand aus Sachsen, 1–3 Tage Lieferzeit."
+    },
+    "search": {
+      "search": "Suchen",
+      "placeholder": "Wonach suchst du?"
+    },
+    "accessibility": {
+      "skip_to_content": "Zum Inhalt springen",
+      "close": "Schließen"
+    }
+  },
+  "cart": {
+    "title": "Dein Warenkorb",
+    "empty": "Dein Warenkorb ist noch leer.",
+    "checkout": "Zur Kasse",
+    "subtotal": "Zwischensumme",
+    "remove": "Entfernen"
+  },
+  "products": {
+    "add_to_cart": "In den Warenkorb",
+    "sold_out": "Ausverkauft",
+    "quantity": "Menge",
+    "low_stock": "Nur noch {{ count }} auf Lager",
+    "online_cheaper": "Online günstiger",
+    "at_machine": "Am Automaten"
+  },
+  "newsletter": {
+    "heading": "5 % auf deine erste Bestellung",
+    "submit": "Anmelden",
+    "confirmation": "Fast geschafft! Bitte bestätige deine Anmeldung per E-Mail (Double-Opt-in)."
+  },
+  "age_gate": {
+    "question": "Bist du 18 oder älter?",
+    "yes": "Ja, ich bin 18+",
+    "no": "Nein"
+  }
+}

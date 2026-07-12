@@ -1,0 +1,17 @@
+{%- comment -%}
+  Age-Gate: Vollbild-Overlay beim ersten Besuch, Cookie-basiert (30 Tage).
+  Bei "Nein" bleiben 18+-Bereiche blockiert (body[data-age-restricted]).
+  Logik in theme.js → initAgeGate().
+{%- endcomment -%}
+<div class="age-gate" data-age-gate hidden role="dialog" aria-modal="true" aria-labelledby="AgeGateTitle">
+  <div class="age-gate__box">
+    <img src="{{ 'logo.png' | asset_url }}" alt="24SEVEN E-Kiosk" width="120" height="48" style="margin: 0 auto var(--space-4);" onerror="this.style.display='none'">
+    <h2 id="AgeGateTitle">Bist du 18 oder älter?</h2>
+    <p class="text-muted">Unser Sortiment enthält Produkte, die erst ab 18 Jahren erhältlich sind. Bitte bestätige dein Alter.</p>
+    <div>
+      <button type="button" class="btn btn--primary" data-age-yes>Ja, ich bin 18+</button>
+      <button type="button" class="btn btn--secondary" data-age-no>Nein</button>
+    </div>
+    <p class="age-gate__note">Mit "Ja" bestätigst du, dass du mindestens 18 Jahre alt bist. Beim Versand altersbeschränkter Produkte prüfen wir dein Alter zusätzlich bei Bestellung und Zustellung (DHL Alterssichtprüfung 18+).</p>
+  </div>
+</div>

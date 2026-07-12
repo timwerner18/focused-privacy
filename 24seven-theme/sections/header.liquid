@@ -1,0 +1,95 @@
+{%- comment -%}
+  Header: Logo, Mega-Menü (Desktop, aus Hauptmenü-Linklist), Drawer (Mobile), Cart-Button.
+{%- endcomment -%}
+{%- assign menu = section.settings.menu | default: 'main-menu' -%}
+<header class="site-header">
+  <div class="site-header__inner page-width">
+    <button type="button" class="header-icon-btn site-header__burger" data-menu-open aria-label="Menü öffnen">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+
+    <a href="{{ routes.root_url }}" class="site-header__logo">
+      <img src="{{ 'logo.png' | asset_url }}" alt="{{ shop.name }}" width="120" height="36" onerror="this.replaceWith('24SEVEN')">
+      <span>E-Kiosk</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Hauptnavigation">
+      <ul class="nav-list">
+        {%- for link in linklists[menu].links -%}
+          <li class="nav-item">
+            <a href="{{ link.url }}">{{ link.title }}</a>
+            {%- if link.links.size > 0 -%}
+              <div class="mega-menu">
+                <div class="mega-menu__grid page-width">
+                  {%- for child in link.links -%}
+                    <div class="mega-menu__col">
+                      <h4><a href="{{ child.url }}">{{ child.title }}</a></h4>
+                      {%- if child.links.size > 0 -%}
+                        <ul>
+                          {%- for grandchild in child.links -%}
+                            <li><a href="{{ grandchild.url }}">{{ grandchild.title }}</a></li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                    </div>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <a href="{{ routes.search_url }}" class="header-icon-btn" aria-label="Suche">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      </a>
+      <button type="button" class="header-icon-btn" data-cart-open aria-label="Warenkorb öffnen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+        <span class="cart-count-bubble" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>{{ cart.item_count }}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+{%- comment -%} Mobile Drawer {%- endcomment -%}
+<div class="menu-drawer" data-menu-drawer aria-hidden="true">
+  <div class="menu-drawer__overlay" data-menu-close></div>
+  <div class="menu-drawer__panel">
+    <button type="button" class="header-icon-btn" data-menu-close aria-label="Menü schließen" style="margin-left:auto; display:block;">✕</button>
+    <nav aria-label="Mobile Navigation">
+      <ul>
+        {%- for link in linklists[menu].links -%}
+          <li>
+            <a href="{{ link.url }}">{{ link.title }}</a>
+            {%- if link.links.size > 0 -%}
+              <ul>
+                {%- for child in link.links -%}
+                  <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+    <p style="margin-top: var(--space-6); font-size: var(--text-xs); color: var(--color-text-dim);">
+      🕐 24/7 bestellbar · 📦 Versand aus Sachsen · 🔞 18+ geprüft
+    </p>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Hauptmenü",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

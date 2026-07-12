@@ -1,0 +1,14 @@
+<div class="page-width section-spacing">
+  <h1>{{ page.title }}</h1>
+  {%- if page.content contains 'VOM ANWALT PRÜFEN LASSEN' -%}
+    <div class="legal-warning">⚠️ PLATZHALTER – VOM ANWALT PRÜFEN LASSEN, bevor der Shop live geht!</div>
+  {%- endif -%}
+  <div class="rte">{{ page.content }}</div>
+</div>
+
+{% schema %}
+{
+  "name": "Seite",
+  "settings": []
+}
+{% endschema %}

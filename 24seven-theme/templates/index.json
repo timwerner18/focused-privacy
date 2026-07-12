@@ -1,0 +1,114 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "heading_1": "Dein 24/7 Kiosk –",
+        "heading_accent": "jetzt online.",
+        "subheading": "1–3 Tage Lieferzeit, online günstiger als am Automaten. Das komplette Sortiment aus Aue & Zwickau – bequem zu dir nach Hause.",
+        "cta_label": "Jetzt shoppen",
+        "cta_url": "/collections/all",
+        "cta2_label": "Bestseller ansehen",
+        "cta2_url": "/collections/bestseller"
+      }
+    },
+    "usp_bar": {
+      "type": "usp-bar",
+      "settings": {}
+    },
+    "categories": {
+      "type": "category-grid",
+      "blocks": {
+        "cat_vapes": { "type": "category", "settings": { "collection": "vapes-liquids", "title": "Vapes & Liquids", "emoji": "💨" } },
+        "cat_happys": { "type": "category", "settings": { "collection": "happys-amsterdam", "title": "Happy's Amsterdam", "emoji": "🌴" } },
+        "cat_onlygrams": { "type": "category", "settings": { "collection": "onlygrams-h3bta", "title": "Onlygrams & H3BTA", "emoji": "🫐" } },
+        "cat_drinks": { "type": "category", "settings": { "collection": "getraenke", "title": "Getränke", "emoji": "🥤" } },
+        "cat_snacks": { "type": "category", "settings": { "collection": "snacks-sweets", "title": "Snacks & Sweets", "emoji": "🍫" } },
+        "cat_tabak": { "type": "category", "settings": { "collection": "tabak-drehzubehoer", "title": "Tabak & Drehzubehör", "emoji": "🚬" } },
+        "cat_mystery": { "type": "category", "settings": { "collection": "mystery-packs", "title": "Mystery Packs", "emoji": "🎁" } },
+        "cat_bundles": { "type": "category", "settings": { "collection": "bundles-deals", "title": "Bundles & Deals", "emoji": "🔥" } }
+      },
+      "block_order": ["cat_vapes", "cat_happys", "cat_onlygrams", "cat_drinks", "cat_snacks", "cat_tabak", "cat_mystery", "cat_bundles"],
+      "settings": { "heading": "Alles wie am Automaten. Nur bequemer." }
+    },
+    "savings": {
+      "type": "savings-banner",
+      "settings": {
+        "heading": "Online sparen gegenüber dem Kiosk – bei gleicher Auswahl.",
+        "text": "Am Automaten zahlst du den Sofort-Preis. Online bekommst du dieselben Produkte günstiger – du siehst bei jedem Artikel den Automaten-Preis und deinen Online-Vorteil.",
+        "cta_label": "Deals entdecken",
+        "cta_url": "/collections/bundles-deals"
+      }
+    },
+    "bestseller": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "bestseller",
+        "kicker": "Beliebt am Automaten",
+        "heading": "Bestseller",
+        "limit": 8,
+        "cta_label": "Alle Bestseller"
+      }
+    },
+    "happys": {
+      "type": "brand-spotlight",
+      "settings": {
+        "collection": "happys-amsterdam",
+        "kicker": "Exklusiv bei uns",
+        "heading": "Happy's Amsterdam",
+        "text": "Die Sorten, die du vom Automaten kennst – Forbidden Fruit, Mango Safari, Golden Kush & mehr. Online bestellen und sparen: am Automaten 29,90 €, online günstiger.",
+        "cta_label": "Alle Sorten ansehen"
+      }
+    },
+    "neu": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "neu-im-kiosk",
+        "kicker": "Frisch eingetroffen",
+        "heading": "Neu im Kiosk",
+        "limit": 4,
+        "cta_label": "Alle Neuheiten"
+      }
+    },
+    "bundles": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "bundles-deals",
+        "kicker": "Mehr für dein Geld",
+        "heading": "Bundles & Deals",
+        "subheading": "Spar-Sets statt Einzelkauf – fertig gepackt und günstiger.",
+        "limit": 4,
+        "cta_label": "Alle Bundles"
+      }
+    },
+    "how_it_works": {
+      "type": "how-it-works",
+      "settings": { "heading": "Vom Klick bis zur Haustür" }
+    },
+    "locator": {
+      "type": "store-locator",
+      "blocks": {
+        "loc_aue": { "type": "location", "settings": { "name": "24SEVEN Kiosk Aue", "address": "Postplatz 4, 08280 Aue-Bad Schlema" } },
+        "loc_zwickau": { "type": "location", "settings": { "name": "24SEVEN Kiosk Zwickau", "address": "ADRESSE EINTRAGEN, 08056 Zwickau" } }
+      },
+      "block_order": ["loc_aue", "loc_zwickau"],
+      "settings": { "heading": "Unsere Kioske in Aue & Zwickau" }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {}
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "faq_liefer": { "type": "faq", "settings": { "question": "Wie lange dauert die Lieferung?", "answer": "<p>1–3 Werktage mit DHL. Im Raum Erzgebirge\/Zwickau (PLZ 08xxx\/09xxx) bist du in der Express-Region – da ist dein Paket oft schon am nächsten Tag da.</p>" } },
+        "faq_alter": { "type": "faq", "settings": { "question": "Wie läuft die Altersprüfung ab?", "answer": "<p>Zweistufig: Beim Bestellen verifizieren wir dein Alter online. Bei der Zustellung von 18+-Produkten prüft DHL zusätzlich deinen Ausweis (Alterssichtprüfung 18+). Zustellung nur an dich persönlich – Ausweis bereithalten.</p>" } },
+        "faq_zahlung": { "type": "faq", "settings": { "question": "Wie kann ich bezahlen?", "answer": "<p>Alle im Checkout angezeigten Zahlarten, z. B. Vorkasse\/Überweisung und weitere. Die verfügbaren Optionen siehst du im letzten Bestellschritt.</p>" } },
+        "faq_retoure": { "type": "faq", "settings": { "question": "Kann ich meine Bestellung zurückgeben?", "answer": "<p>Du hast 14 Tage Widerrufsrecht. Ausgenommen sind aus Hygienegründen entsiegelte Produkte (z. B. geöffnete Vapes oder Lebensmittel). Details in der Widerrufsbelehrung.</p>" } }
+      },
+      "block_order": ["faq_liefer", "faq_alter", "faq_zahlung", "faq_retoure"],
+      "settings": { "heading": "Häufige Fragen" }
+    }
+  },
+  "order": ["hero", "usp_bar", "categories", "savings", "bestseller", "happys", "neu", "bundles", "how_it_works", "locator", "newsletter", "faq"]
+}

@@ -1,0 +1,133 @@
+{%- comment -%}
+  Cart-Drawer statt Cart-Page. Wird von theme.js per `?section_id=cart-drawer`
+  neu gerendert (deshalb alles Dynamische innerhalb [data-cart-drawer-content]).
+  Features: Free-Shipping-Fortschritt, PLZ-Checker (Express-Region 08/09),
+  Upsell-Slot ("Passt dazu"), Altersverifikations-Hinweis.
+{%- endcomment -%}
+{%- assign threshold = settings.free_shipping_threshold | default: 39 | times: 100 -%}
+<div class="cart-drawer" data-cart-drawer aria-hidden="true">
+  <div class="cart-drawer__overlay" data-cart-close></div>
+  <div class="cart-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="CartDrawerTitle">
+    <div class="cart-drawer__header">
+      <h2 id="CartDrawerTitle">Dein Warenkorb <span data-cart-count {% if cart.item_count == 0 %}hidden{% endif %} class="visually-hidden">{{ cart.item_count }}</span></h2>
+      <button type="button" class="cart-drawer__close" data-cart-close aria-label="Warenkorb schließen">×</button>
+    </div>
+
+    <div data-cart-drawer-content style="display: contents;">
+      <div class="cart-drawer__body">
+        {%- if cart.item_count == 0 -%}
+          <p class="text-muted text-center" style="padding: var(--space-8) 0;">Dein Warenkorb ist noch leer.<br>🕐 Der Kiosk hat immer offen – leg was rein!</p>
+          <a href="/collections/all" class="btn btn--primary btn--full">Jetzt stöbern</a>
+        {%- else -%}
+          <div class="shipping-progress{% if cart.total_price >= threshold %} is-reached{% endif %}" data-shipping-progress data-cart-total="{{ cart.total_price }}">
+            <span class="shipping-progress__label">
+              {%- if cart.total_price >= threshold -%}
+                🎉 Gratisversand freigeschaltet!
+              {%- else -%}
+                Noch {{ threshold | minus: cart.total_price | money }} bis Gratisversand 🚚
+              {%- endif -%}
+            </span>
+            <div class="shipping-progress__bar">
+              {%- assign pct = cart.total_price | times: 100 | divided_by: threshold | at_most: 100 -%}
+              <div class="shipping-progress__fill" style="width: {{ pct }}%;"></div>
+            </div>
+          </div>
+
+          {%- for item in cart.items -%}
+            <div class="cart-line">
+              {%- if item.image -%}
+                {{ item.image | image_url: width: 128 | image_tag: class: 'cart-line__img', loading: 'lazy', alt: item.title }}
+              {%- else -%}
+                <div class="cart-line__img"></div>
+              {%- endif -%}
+              <div class="cart-line__info">
+                <div class="cart-line__title">{{ item.product.title }}</div>
+                {%- unless item.variant.title == 'Default Title' -%}
+                  <div class="cart-line__variant">{{ item.variant.title }}</div>
+                {%- endunless -%}
+                {%- if item.product.tags contains 'age_restricted' -%}
+                  <span class="badge badge--18">🔞 18+</span>
+                {%- endif -%}
+                <div class="cart-line__controls">
+                  <div class="qty-input">
+                    <button type="button" data-qty-change="-1" data-line="{{ forloop.index }}" aria-label="Menge verringern">−</button>
+                    <input type="text" value="{{ item.quantity }}" data-line-qty="{{ forloop.index }}" readonly aria-label="Menge">
+                    <button type="button" data-qty-change="1" data-line="{{ forloop.index }}" aria-label="Menge erhöhen">+</button>
+                  </div>
+                  <button type="button" class="cart-line__remove" data-line-remove data-line="{{ forloop.index }}">Entfernen</button>
+                </div>
+              </div>
+              <div class="cart-line__price">{{ item.final_line_price | money }}</div>
+            </div>
+          {%- endfor -%}
+
+          {%- comment -%} Upsell "Passt dazu": Empfehlungen zum ersten Cart-Produkt {%- endcomment -%}
+          {%- assign first_item = cart.items.first -%}
+          {%- assign shown = 0 -%}
+          {%- capture cart_product_ids -%}{%- for item in cart.items -%},{{ item.product_id }}{%- endfor -%},{%- endcapture -%}
+          <div class="cart-upsell">
+            <h3>Passt dazu</h3>
+            {%- for upsell in first_item.product.collections.first.products -%}
+              {%- if shown >= 2 %}{% break %}{% endif -%}
+              {%- assign upsell_key = upsell.id | prepend: ',' | append: ',' -%}
+              {%- unless cart_product_ids contains upsell_key -%}
+                {%- if upsell.available and upsell.variants.size == 1 -%}
+                  <div class="cart-upsell__item">
+                    {%- if upsell.featured_image -%}
+                      {{ upsell.featured_image | image_url: width: 96 | image_tag: loading: 'lazy', alt: upsell.title }}
+                    {%- endif -%}
+                    <div style="flex:1;">
+                      <div>{{ upsell.title | truncate: 40 }}</div>
+                      <strong>{{ upsell.price | money }}</strong>
+                    </div>
+                    <button type="button" class="btn btn--secondary" data-upsell-add="{{ upsell.first_available_variant.id }}">+ Dazu</button>
+                  </div>
+                  {%- assign shown = shown | plus: 1 -%}
+                {%- endif -%}
+              {%- endunless -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if cart.item_count > 0 -%}
+        <div class="cart-drawer__footer">
+          <div class="plz-checker" data-plz-checker>
+            <span>📍 Wann kommt's an? PLZ checken:</span>
+            <div class="plz-checker__form">
+              <input type="text" inputmode="numeric" maxlength="5" placeholder="08280" aria-label="Postleitzahl">
+              <button type="button" class="btn btn--secondary">Prüfen</button>
+            </div>
+            <div class="plz-checker__result" data-plz-result></div>
+          </div>
+
+          {%- assign has_restricted = false -%}
+          {%- for item in cart.items -%}
+            {%- if item.product.tags contains 'age_restricted' -%}{%- assign has_restricted = true -%}{%- endif -%}
+          {%- endfor -%}
+          {%- if has_restricted -%}
+            <div class="cart-age-note">
+              🔞 <strong>Altersprüfung:</strong> Dein Warenkorb enthält 18+-Produkte. Wir verifizieren dein Alter bei der Bestellung, und DHL prüft deinen Ausweis bei der Zustellung (Alterssichtprüfung 18+). Bitte halte deinen Ausweis bereit – Zustellung nur an dich persönlich.
+            </div>
+          {%- endif -%}
+
+          <div style="display:flex; justify-content:space-between; font-weight:800; margin-bottom: var(--space-3);">
+            <span>Zwischensumme</span>
+            <span>{{ cart.total_price | money }}</span>
+          </div>
+          <p class="text-muted" style="font-size: var(--text-xs); margin-bottom: var(--space-3);">inkl. MwSt., Versand wird im Checkout berechnet. 🚚 Lieferzeit 1–3 Werktage.</p>
+          <form action="{{ routes.cart_url }}" method="post">
+            <button type="submit" name="checkout" class="btn btn--primary btn--full">Zur Kasse</button>
+          </form>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cart-Drawer",
+  "settings": []
+}
+{% endschema %}

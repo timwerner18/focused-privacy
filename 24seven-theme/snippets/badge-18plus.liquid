@@ -1,0 +1,7 @@
+{%- comment -%}
+  18+-Badge für Produkte mit Tag `age_restricted`.
+  Parameter: product (Product)
+{%- endcomment -%}
+{%- if product.tags contains 'age_restricted' -%}
+  <span class="badge badge--18" title="Verkauf nur an Personen ab 18 Jahren">🔞 18+</span>
+{%- endif -%}

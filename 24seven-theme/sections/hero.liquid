@@ -1,0 +1,28 @@
+<section class="hero">
+  <div class="page-width">
+    <div class="hero__content">
+      <h1>{{ section.settings.heading_1 }} <span class="accent">{{ section.settings.heading_accent }}</span></h1>
+      <p class="hero__sub">{{ section.settings.subheading }}</p>
+      <div class="hero__ctas">
+        <a href="{{ section.settings.cta_url }}" class="btn btn--primary">{{ section.settings.cta_label }}</a>
+        <a href="{{ section.settings.cta2_url }}" class="btn btn--secondary">{{ section.settings.cta2_label }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    { "type": "text", "id": "heading_1", "label": "Headline (Teil 1)", "default": "Dein 24/7 Kiosk –" },
+    { "type": "text", "id": "heading_accent", "label": "Headline (Akzent)", "default": "jetzt online." },
+    { "type": "text", "id": "subheading", "label": "Unterzeile", "default": "1–3 Tage Lieferzeit, online günstiger als am Automaten. Das komplette Sortiment aus Aue & Zwickau – bequem zu dir nach Hause." },
+    { "type": "text", "id": "cta_label", "label": "CTA-Text", "default": "Jetzt shoppen" },
+    { "type": "url", "id": "cta_url", "label": "CTA-Link" },
+    { "type": "text", "id": "cta2_label", "label": "CTA 2 Text", "default": "Bestseller ansehen" },
+    { "type": "url", "id": "cta2_url", "label": "CTA 2 Link" }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

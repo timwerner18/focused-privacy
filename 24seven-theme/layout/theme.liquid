@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de" data-free-shipping-cents="{{ settings.free_shipping_threshold | default: 39 | times: 100 }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c0a14">
+  <link rel="canonical" href="{{ canonical_url }}">
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32 }}">
+  {%- endif -%}
+
+  {% render 'meta-tags' %}
+  {% render 'theme-tokens' %}
+
+  {{ 'base.css' | asset_url | stylesheet_tag }}
+  <link rel="preload" href="{{ 'inter-variable.woff2' | asset_url }}" as="font" type="font/woff2" crossorigin>
+
+  {% render 'structured-data' %}
+
+  {%- comment -%} Tracking-Slots: werden erst nach Marketing-Consent aktiviert (theme.js) {%- endcomment -%}
+  {%- if settings.meta_pixel_id != blank -%}
+    <script type="text/plain" data-consent="marketing">
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '{{ settings.meta_pixel_id }}');
+      fbq('track', 'PageView');
+    </script>
+  {%- endif -%}
+  {%- if settings.ga4_id != blank -%}
+    <script type="text/plain" data-consent="marketing" data-src="https://www.googletagmanager.com/gtag/js?id={{ settings.ga4_id }}"></script>
+    <script type="text/plain" data-consent="marketing">
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ settings.ga4_id }}', { anonymize_ip: true });
+    </script>
+  {%- endif -%}
+
+  {{ content_for_header }}
+</head>
+<body data-age-restricted="{% if template contains 'product' and product.tags contains 'age_restricted' %}true{% elsif collection.handle == 'vapes-liquids' or collection.handle == 'happys-amsterdam' or collection.handle == 'onlygrams-h3bta' or collection.handle == 'tabak-drehzubehoer' %}true{% else %}false{% endif %}">
+  <a class="skip-to-content" href="#MainContent">Zum Inhalt springen</a>
+
+  {% render 'age-gate' %}
+
+  {% sections 'header-group' %}
+
+  <main id="MainContent" role="main">
+    {{ content_for_layout }}
+  </main>
+
+  {% sections 'footer-group' %}
+
+  {% section 'cart-drawer' %}
+  {% render 'newsletter-popup' %}
+  {% render 'cookie-banner' %}
+
+  {%- if settings.show_delivery_sticky -%}
+    <div class="delivery-sticky" aria-hidden="true">🚚 1–3 Tage Lieferzeit</div>
+  {%- endif -%}
+
+  <script src="{{ 'theme.js' | asset_url }}" defer></script>
+</body>
+</html>

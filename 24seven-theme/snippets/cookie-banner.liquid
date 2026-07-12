@@ -1,0 +1,13 @@
+{%- comment -%}
+  Cookie-Consent-Banner im Theme-Stil.
+  Nutzt die Shopify Customer Privacy API (theme.js → initConsent()).
+  Tracking-Skripte (Meta Pixel, GA4) laden erst nach Marketing-Consent.
+{%- endcomment -%}
+<div class="cookie-banner" data-cookie-banner hidden role="region" aria-label="Cookie-Einstellungen">
+  <strong>🍪 Cookies im Kiosk</strong>
+  <p class="mb-0">Wir nutzen Cookies, um den Shop zu betreiben und – nur mit deiner Zustimmung – für Statistik und Marketing. Details in der <a href="/pages/datenschutz">Datenschutzerklärung</a>.</p>
+  <div class="cookie-banner__actions">
+    <button type="button" class="btn btn--primary" data-consent-accept>Alle akzeptieren</button>
+    <button type="button" class="btn btn--secondary" data-consent-essential>Nur notwendige</button>
+  </div>
+</div>

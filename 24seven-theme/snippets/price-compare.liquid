@@ -1,0 +1,28 @@
+{%- comment -%}
+  Preisvergleich "Am Automaten" (compare_at_price) vs. "Online".
+  Parameter:
+    product (Product) – Pflicht
+    size (String) – 'large' für Produktseite
+  Nutzt compare_at_price als Automaten-Referenzpreis.
+{%- endcomment -%}
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign has_compare = false
+  if variant.compare_at_price > variant.price
+    assign has_compare = true
+    assign saving = variant.compare_at_price | minus: variant.price
+  endif
+-%}
+<div class="price-compare{% if size == 'large' %} price-compare--large{% endif %}">
+  {%- if has_compare -%}
+    <span class="price-compare__automat" data-product-compare>
+      Am Automaten: <s>{{ variant.compare_at_price | money }}</s>
+    </span>
+  {%- endif -%}
+  <span class="price-compare__online">
+    <span data-product-price>{{ variant.price | money }}</span>
+    {%- if has_compare -%}
+      <span class="label">Online – du sparst {{ saving | money }}</span>
+    {%- endif -%}
+  </span>
+</div>

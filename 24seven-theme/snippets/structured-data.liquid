@@ -1,0 +1,73 @@
+{%- comment -%}
+  Strukturierte Daten: Organization + LocalBusiness (beide Standorte) global,
+  Product auf Produktseiten. FAQPage wird in der FAQ-Section gerendert.
+{%- endcomment -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "24SEVEN E-Kiosk",
+  "url": "{{ shop.url }}",
+  "logo": "{{ 'logo.png' | asset_url }}",
+  "sameAs": []
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "name": "24SEVEN Kiosk Aue",
+      "description": "Automatisierter 24/7-Kiosk in Aue – Vapes, Snacks, Getränke rund um die Uhr.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Postplatz 4",
+        "addressLocality": "Aue-Bad Schlema",
+        "postalCode": "08280",
+        "addressRegion": "Sachsen",
+        "addressCountry": "DE"
+      },
+      "openingHours": "Mo-Su 00:00-24:00",
+      "parentOrganization": { "@type": "Organization", "name": "24SEVEN E-Kiosk" }
+    },
+    {
+      "@type": "LocalBusiness",
+      "name": "24SEVEN Kiosk Zwickau",
+      "description": "Automatisierter 24/7-Kiosk in Zwickau – Vapes, Snacks, Getränke rund um die Uhr.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "ADRESSE EINTRAGEN",
+        "addressLocality": "Zwickau",
+        "postalCode": "08056",
+        "addressRegion": "Sachsen",
+        "addressCountry": "DE"
+      },
+      "openingHours": "Mo-Su 00:00-24:00",
+      "parentOrganization": { "@type": "Organization", "name": "24SEVEN E-Kiosk" }
+    }
+  ]
+}
+</script>
+{%- if template.name == 'product' -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": {{ product.title | json }},
+  "description": {{ product.description | strip_html | truncate: 300 | json }},
+  {%- if product.featured_image -%}
+  "image": "https:{{ product.featured_image | image_url: width: 1200 }}",
+  {%- endif -%}
+  "sku": {{ product.selected_or_first_available_variant.sku | json }},
+  "brand": { "@type": "Brand", "name": {{ product.vendor | json }} },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ shop.url }}{{ product.url }}",
+    "priceCurrency": {{ cart.currency.iso_code | json }},
+    "price": "{{ product.selected_or_first_available_variant.price | divided_by: 100.0 }}",
+    "availability": "https://schema.org/{% if product.available %}InStock{% else %}OutOfStock{% endif %}"
+  }
+}
+</script>
+{%- endif -%}

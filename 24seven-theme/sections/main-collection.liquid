@@ -1,0 +1,83 @@
+{%- comment -%}
+  Collection-Template: Storefront-Filter (Marke/Geschmack/Preis via Search & Discovery),
+  Sortierung, Quick-Add auf Cards, Pagination.
+{%- endcomment -%}
+<div class="page-width section-spacing">
+  <div class="section-heading" style="text-align:left;">
+    <h1>{{ collection.title }}</h1>
+    {%- if collection.description != blank -%}
+      <div class="rte">{{ collection.description }}</div>
+    {%- endif -%}
+  </div>
+
+  {%- paginate collection.products by 24 -%}
+    <form class="collection-toolbar" id="FacetsForm">
+      <div class="facets">
+        {%- for filter in collection.filters -%}
+          <details>
+            <summary>{{ filter.label }}{% if filter.active_values.size > 0 %} ({{ filter.active_values.size }}){% endif %}</summary>
+            <div class="facet-panel">
+              {%- case filter.type -%}
+                {%- when 'price_range' -%}
+                  <label>
+                    von
+                    <input type="number" name="{{ filter.min_value.param_name }}" value="{{ filter.min_value.value | divided_by: 100 }}" placeholder="0" min="0" style="width: 70px;">
+                    bis
+                    <input type="number" name="{{ filter.max_value.param_name }}" value="{{ filter.max_value.value | divided_by: 100 }}" placeholder="{{ filter.range_max | divided_by: 100 }}" style="width: 70px;">
+                  </label>
+                {%- else -%}
+                  {%- for value in filter.values -%}
+                    <label>
+                      <input type="checkbox" name="{{ value.param_name }}" value="{{ value.value }}" {% if value.active %}checked{% endif %} {% if value.count == 0 and value.active == false %}disabled{% endif %}>
+                      {{ value.label }} ({{ value.count }})
+                    </label>
+                  {%- endfor -%}
+              {%- endcase -%}
+              <button type="submit" class="btn btn--primary btn--full" style="margin-top: var(--space-3); padding: 0.5rem;">Anwenden</button>
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+      <label>
+        <span class="visually-hidden">Sortieren nach</span>
+        <select name="sort_by" onchange="this.form.submit()">
+          {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+          {%- for option in collection.sort_options -%}
+            <option value="{{ option.value }}" {% if option.value == sort_by %}selected{% endif %}>{{ option.name }}</option>
+          {%- endfor -%}
+        </select>
+      </label>
+    </form>
+
+    <div class="product-grid">
+      {%- for product in collection.products -%}
+        {% render 'product-card', product: product %}
+      {%- else -%}
+        <p class="text-muted">Keine Produkte gefunden. Setz ein paar Filter zurück!</p>
+      {%- endfor -%}
+    </div>
+
+    {%- if paginate.pages > 1 -%}
+      <nav class="pagination" aria-label="Seiten">
+        {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}">‹</a>{%- endif -%}
+        {%- for part in paginate.parts -%}
+          {%- if part.is_link -%}
+            <a href="{{ part.url }}">{{ part.title }}</a>
+          {%- elsif part.title == paginate.current_page -%}
+            <span class="current">{{ part.title }}</span>
+          {%- else -%}
+            <span>{{ part.title }}</span>
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if paginate.next -%}<a href="{{ paginate.next.url }}">›</a>{%- endif -%}
+      </nav>
+    {%- endif -%}
+  {%- endpaginate -%}
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "settings": []
+}
+{% endschema %}

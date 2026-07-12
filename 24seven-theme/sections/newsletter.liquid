@@ -1,0 +1,28 @@
+<section class="section-spacing">
+  <div class="page-width">
+    <div class="newsletter-box">
+      <h2>{{ section.settings.heading }}</h2>
+      <p class="text-muted">{{ section.settings.text }}</p>
+      {%- form 'customer', class: 'newsletter-form' -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <input type="email" name="contact[email]" placeholder="deine@email.de" required aria-label="E-Mail-Adresse">
+        <button type="submit" class="btn btn--pink">Anmelden</button>
+        {%- if form.posted_successfully? -%}
+          <p class="newsletter-hint" style="color: var(--color-success);">Fast geschafft! Bitte bestätige deine Anmeldung in der E-Mail, die wir dir gerade geschickt haben (Double-Opt-in).</p>
+        {%- endif -%}
+      {%- endform -%}
+      <p class="newsletter-hint">Double-Opt-in, jederzeit abbestellbar. Details: <a href="/pages/datenschutz">Datenschutz</a>.</p>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "5 % auf deine erste Bestellung" },
+    { "type": "textarea", "id": "text", "label": "Text", "default": "Newsletter abonnieren und sparen – plus Drops, Deals und Neuheiten aus dem Kiosk direkt in dein Postfach." }
+  ],
+  "presets": [{ "name": "Newsletter" }]
+}
+{% endschema %}

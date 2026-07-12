@@ -1,0 +1,57 @@
+{%- comment -%}
+  Fallback-Cart-Page (der eigentliche Warenkorb läuft als Drawer).
+  Zeigt dieselben Infos + Checkout-Button für No-JS-Nutzer.
+{%- endcomment -%}
+<div class="page-width section-spacing">
+  <h1>Warenkorb</h1>
+  {%- if cart.item_count == 0 -%}
+    <p class="text-muted">Dein Warenkorb ist leer.</p>
+    <a href="/collections/all" class="btn btn--primary">Jetzt stöbern</a>
+  {%- else -%}
+    <form action="{{ routes.cart_url }}" method="post">
+      {%- for item in cart.items -%}
+        <div class="cart-line">
+          {%- if item.image -%}
+            {{ item.image | image_url: width: 128 | image_tag: class: 'cart-line__img', alt: item.title }}
+          {%- endif -%}
+          <div class="cart-line__info">
+            <div class="cart-line__title">{{ item.product.title }}</div>
+            {%- unless item.variant.title == 'Default Title' -%}
+              <div class="cart-line__variant">{{ item.variant.title }}</div>
+            {%- endunless -%}
+            <div class="cart-line__controls">
+              <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" style="width: 64px; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); padding: 0.4rem;">
+            </div>
+          </div>
+          <div class="cart-line__price">{{ item.final_line_price | money }}</div>
+        </div>
+      {%- endfor -%}
+
+      {%- assign has_restricted = false -%}
+      {%- for item in cart.items -%}
+        {%- if item.product.tags contains 'age_restricted' -%}{%- assign has_restricted = true -%}{%- endif -%}
+      {%- endfor -%}
+      {%- if has_restricted -%}
+        <div class="cart-age-note">
+          🔞 <strong>Altersprüfung:</strong> Dein Warenkorb enthält 18+-Produkte. Alter wird bei Bestellung verifiziert; DHL prüft deinen Ausweis bei Zustellung (Alterssichtprüfung 18+).
+        </div>
+      {%- endif -%}
+
+      <div style="display:flex; justify-content:space-between; font-weight:800; margin: var(--space-4) 0;">
+        <span>Zwischensumme</span>
+        <span>{{ cart.total_price | money }}</span>
+      </div>
+      <div style="display:flex; gap: var(--space-3);">
+        <button type="submit" name="update" class="btn btn--secondary">Aktualisieren</button>
+        <button type="submit" name="checkout" class="btn btn--primary" style="flex:1;">Zur Kasse</button>
+      </div>
+    </form>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Warenkorb",
+  "settings": []
+}
+{% endschema %}

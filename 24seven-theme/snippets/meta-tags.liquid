@@ -1,0 +1,33 @@
+{%- comment -%}
+  Title/Meta-Templates je Seitentyp – lokale Keywords eingearbeitet.
+{%- endcomment -%}
+{%- liquid
+  assign shop_suffix = '24SEVEN E-Kiosk – Kiosk online bestellen aus Sachsen'
+  if template.name == 'index'
+    assign page_title = '24SEVEN E-Kiosk | Dein Kiosk. Jetzt auch online. Vapes, Snacks & mehr aus Aue/Zwickau'
+    assign page_description = 'Kiosk online bestellen: Vapes, Snacks, Getränke & Drehzubehör – 24/7 bestellbar, Versand aus Sachsen, 1–3 Tage Lieferzeit. Online günstiger als am Automaten in Aue & Zwickau.'
+  elsif template.name == 'product'
+    assign page_title = product.title | append: ' online kaufen | ' | append: shop_suffix
+    assign page_description = product.description | strip_html | truncate: 155
+  elsif template.name == 'collection'
+    assign page_title = collection.title | append: ' online bestellen | ' | append: shop_suffix
+    assign page_description = collection.description | strip_html | truncate: 155 | default: collection.title
+  elsif template.name == 'page'
+    assign page_title = page.title | append: ' | 24SEVEN E-Kiosk'
+    assign page_description = page.content | strip_html | truncate: 155
+  else
+    assign page_title = page_title | default: shop.name
+    assign page_description = page_description | default: shop.description
+  endif
+-%}
+<title>{{ page_title }}</title>
+<meta name="description" content="{{ page_description | escape }}">
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta property="og:title" content="{{ page_title | escape }}">
+<meta property="og:description" content="{{ page_description | escape }}">
+<meta property="og:type" content="{% if template.name == 'product' %}product{% else %}website{% endif %}">
+<meta property="og:url" content="{{ canonical_url }}">
+{%- if template.name == 'product' and product.featured_image -%}
+  <meta property="og:image" content="https:{{ product.featured_image | image_url: width: 1200 }}">
+{%- endif -%}
+<meta name="twitter:card" content="summary_large_image">

@@ -1,0 +1,57 @@
+<footer class="site-footer">
+  <div class="page-width">
+    <div class="site-footer__grid">
+      <div>
+        <h4>24SEVEN E-Kiosk</h4>
+        <p class="text-muted">Dein Kiosk. Jetzt auch online.<br>Das komplette Kiosk-Sortiment aus Aue & Zwickau – bequem nach Hause.</p>
+        <p class="text-muted">🕐 Automaten vor Ort: 24/7 geöffnet</p>
+      </div>
+      <div>
+        <h4>Sortiment</h4>
+        <ul>
+          {%- for link in linklists[section.settings.menu_shop].links -%}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+      <div>
+        <h4>Service</h4>
+        <ul>
+          <li><a href="/pages/ueber-uns">Über uns</a></li>
+          <li><a href="/pages/standorte">Unsere Kioske (Aue & Zwickau)</a></li>
+          <li><a href="/pages/versand-zahlung">Versand & Zahlung</a></li>
+          <li><a href="/pages/jugendschutz">Jugendschutz</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="/pages/impressum">Impressum</a></li>
+          <li><a href="/pages/datenschutz">Datenschutz</a></li>
+          <li><a href="/pages/agb">AGB</a></li>
+          <li><a href="/pages/widerruf">Widerrufsbelehrung</a></li>
+          <li><a href="/pages/widerrufsformular">Widerrufsformular</a></li>
+          <li><a href="/pages/batteriegesetz">Batteriegesetz-Hinweis</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>© {{ 'now' | date: '%Y' }} 24SEVEN E-Kiosk · 24seven-ekiosk.de · Alle Preise inkl. MwSt., zzgl. <a href="/pages/versand-zahlung">Versand</a></span>
+      <span>🔞 Abgabe von Vapes & Tabakwaren nur an Personen ab 18 Jahren.</span>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu_shop",
+      "label": "Sortiments-Menü",
+      "default": "main-menu"
+    }
+  ]
+}
+{% endschema %}

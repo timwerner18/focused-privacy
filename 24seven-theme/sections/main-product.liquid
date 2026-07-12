@@ -1,0 +1,162 @@
+{%- comment -%}
+  Produkt-Template: Galerie, Preisvergleich Automat/Online, Varianten-Picker,
+  Bundle-Box (Metafield custom.bundle_hinweis / custom.bundle_inhalt),
+  Lieferzeit-Badge, 18+-Hinweis, Tabs, Sticky-ATC (mobil), Cross-Sells.
+{%- endcomment -%}
+{%- assign variant = product.selected_or_first_available_variant -%}
+<div class="page-width">
+  <div class="product-layout">
+    <div class="product-gallery">
+      <div class="product-gallery__main" data-gallery-main>
+        {%- if product.featured_image -%}
+          {{ product.featured_image | image_url: width: 1000 | image_tag: widths: '500, 750, 1000', alt: product.featured_image.alt | default: product.title }}
+        {%- else -%}
+          <div class="placeholder-media" style="height:100%; display:flex; align-items:center; justify-content:center; font-size:4rem;">🛍️</div>
+        {%- endif -%}
+      </div>
+      {%- if product.images.size > 1 -%}
+        <div class="product-gallery__thumbs">
+          {%- for image in product.images -%}
+            <button type="button" data-gallery-thumb="{{ image | image_url: width: 1000 }}" {% if forloop.first %}class="is-active"{% endif %} aria-label="Bild {{ forloop.index }}">
+              {{ image | image_url: width: 150 | image_tag: loading: 'lazy', alt: image.alt | default: product.title }}
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="product-info">
+      <span class="product-info__vendor">{{ product.vendor }}</span>
+      <h1>{{ product.title }}</h1>
+
+      <div class="product-info__badges">
+        {%- if variant.compare_at_price > variant.price -%}
+          <span class="badge badge--save">Online günstiger als am Automaten</span>
+        {%- endif -%}
+        {% render 'badge-18plus', product: product %}
+        {%- if product.tags contains 'neu' -%}<span class="badge badge--new">Neu im Kiosk</span>{%- endif -%}
+      </div>
+
+      {% render 'price-compare', product: product, size: 'large' %}
+
+      {%- if variant.inventory_management == 'shopify' and variant.inventory_quantity > 0 and variant.inventory_quantity <= 5 -%}
+        <p class="stock-hint">⚠️ Nur noch {{ variant.inventory_quantity }} auf Lager</p>
+      {%- endif -%}
+
+      <form data-product-form>
+        <input type="hidden" name="id" value="{{ variant.id }}">
+
+        {%- unless product.has_only_default_variant -%}
+          <div class="variant-picker">
+            {%- for option in product.options_with_values -%}
+              <fieldset>
+                <legend class="label">{{ option.name }}</legend>
+                {%- for value in option.values -%}
+                  {%- assign input_id = 'Option-' | append: forloop.parentloop.index | append: '-' | append: forloop.index -%}
+                  <input type="radio" id="{{ input_id }}" name="option{{ forloop.parentloop.index }}" value="{{ value | escape }}" {% if option.selected_value == value %}checked{% endif %}>
+                  <label class="swatch" for="{{ input_id }}">{{ value }}</label>
+                {%- endfor -%}
+              </fieldset>
+            {%- endfor -%}
+          </div>
+          <script type="application/json" data-variant-json>{{ product.variants | json }}</script>
+        {%- endunless -%}
+
+        <div style="display:flex; gap: var(--space-3); align-items:center; margin: var(--space-4) 0;">
+          <div class="qty-input">
+            <button type="button" data-qty-btn="-1" aria-label="Menge verringern">−</button>
+            <input type="text" name="quantity" value="1" inputmode="numeric" aria-label="Menge">
+            <button type="button" data-qty-btn="1" aria-label="Menge erhöhen">+</button>
+          </div>
+          <button type="submit" class="btn btn--primary" style="flex:1;" data-atc {% unless product.available %}disabled{% endunless %}>
+            {%- if product.available %}In den Warenkorb{% else %}Ausverkauft{% endif -%}
+          </button>
+        </div>
+      </form>
+
+      <div class="delivery-badge">
+        🚚 <span><strong>1–3 Tage Lieferzeit</strong> – im Raum Erzgebirge/Zwickau oft schon am nächsten Tag.</span>
+      </div>
+
+      {%- if product.tags contains 'age_restricted' -%}
+        <div class="age-note">
+          🔞 <strong>Ab 18 Jahren.</strong> Verkauf nur an Volljährige. Altersprüfung bei Bestellung und Zustellung (DHL Alterssichtprüfung 18+).
+          {%- if product.tags contains 'vape' or product.tags contains 'nikotin' %}
+            Dieses Produkt kann Nikotin enthalten – ein Stoff, der abhängig macht.
+          {%- endif %}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} Bundle-Box via Metafields {%- endcomment -%}
+      {%- if product.metafields.custom.bundle_hinweis != blank or product.tags contains 'bundle' -%}
+        <div class="bundle-box">
+          <h3>🔥 {{ product.metafields.custom.bundle_hinweis | default: 'Spar-Set: Mehr kaufen, mehr sparen' }}</h3>
+          {%- if product.metafields.custom.bundle_inhalt != blank -%}
+            {{ product.metafields.custom.bundle_inhalt | metafield_tag }}
+          {%- endif -%}
+          {%- unless product.tags contains 'bundle' -%}
+            <p style="font-size: var(--text-sm); color: var(--color-text-muted); margin:0;">💡 Tipp: 3× kaufen und ca. 10 % sparen – oder schau bei unseren <a href="/collections/bundles-deals">Bundles & Deals</a> vorbei.</p>
+          {%- endunless -%}
+        </div>
+      {%- endif -%}
+
+      <div class="product-tabs">
+        <details open>
+          <summary>Details</summary>
+          <div class="tab-content rte">{{ product.description }}</div>
+        </details>
+        <details>
+          <summary>Inhaltsstoffe & Hinweise</summary>
+          <div class="tab-content">
+            {{ product.metafields.custom.inhaltsstoffe | default: 'Alle Angaben zu Inhaltsstoffen findest du auf der Produktverpackung.' }}
+            {%- if product.tags contains 'vape' -%}
+              <p>TPD2-konform: max. 2 ml Liquid, max. 20 mg/ml Nikotin. Enthält Batterien – bitte fachgerecht entsorgen (<a href="/pages/batteriegesetz">Batteriegesetz-Hinweis</a>).</p>
+            {%- endif -%}
+          </div>
+        </details>
+        <details>
+          <summary>Versand</summary>
+          <div class="tab-content">
+            <p>Versand aus Sachsen mit DHL, Lieferzeit 1–3 Werktage. PLZ 08xxx/09xxx: oft schon in 24 h. {%- if product.tags contains 'age_restricted' %} Bei 18+-Produkten: Zustellung nur mit Alterssichtprüfung.{% endif %} Details: <a href="/pages/versand-zahlung">Versand & Zahlung</a>.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} Cross-Sells: "Wird oft zusammen gekauft" {%- endcomment -%}
+  {%- assign cross_collection = product.collections.first -%}
+  {%- if cross_collection and cross_collection.products_count > 1 -%}
+    <section class="section-spacing">
+      <div class="section-heading">
+        <h2>Wird oft zusammen gekauft</h2>
+      </div>
+      <div class="product-grid">
+        {%- assign shown = 0 -%}
+        {%- for cross in cross_collection.products -%}
+          {%- if shown >= 4 %}{% break %}{% endif -%}
+          {%- unless cross.id == product.id -%}
+            {% render 'product-card', product: cross %}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endunless -%}
+        {%- endfor -%}
+      </div>
+    </section>
+  {%- endif -%}
+</div>
+
+{%- comment -%} Sticky Add-to-Cart (nur mobil sichtbar, via CSS) {%- endcomment -%}
+<div class="sticky-atc" data-sticky-atc>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-dim);">{{ product.title | truncate: 28 }}</div>
+    <div class="sticky-atc__price" data-sticky-price>{{ variant.price | money }}</div>
+  </div>
+  <button type="button" class="btn btn--primary" data-sticky-add {% unless product.available %}disabled{% endunless %}>In den Warenkorb</button>
+</div>
+
+{% schema %}
+{
+  "name": "Produkt",
+  "settings": []
+}
+{% endschema %}

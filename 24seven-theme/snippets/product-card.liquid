@@ -1,0 +1,47 @@
+{%- comment -%}
+  Produkt-Card mit Badges, Preisvergleich, Quick-Add und ehrlicher Knappheits-Anzeige.
+  Parameter: product (Product)
+{%- endcomment -%}
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign show_stock = false
+  if variant.inventory_management == 'shopify' and variant.inventory_quantity > 0 and variant.inventory_quantity <= 5
+    assign show_stock = true
+  endif
+-%}
+<article class="product-card">
+  <div class="product-card__badges">
+    {%- if variant.compare_at_price > variant.price -%}
+      <span class="badge badge--save">Online günstiger</span>
+    {%- endif -%}
+    {% render 'badge-18plus', product: product %}
+    {%- if product.tags contains 'neu' -%}
+      <span class="badge badge--new">Neu im Kiosk</span>
+    {%- endif -%}
+    {%- if show_stock -%}
+      <span class="badge badge--stock">Nur noch {{ variant.inventory_quantity }}</span>
+    {%- endif -%}
+  </div>
+  <div class="product-card__media">
+    {%- if product.featured_image -%}
+      {{ product.featured_image | image_url: width: 600 | image_tag: loading: 'lazy', widths: '300, 450, 600', alt: product.featured_image.alt | default: product.title }}
+    {%- else -%}
+      <div class="placeholder-media" aria-hidden="true">🛍️</div>
+    {%- endif -%}
+  </div>
+  <div class="product-card__info">
+    <h3 class="product-card__title">
+      <a href="{{ product.url }}">{{ product.title }}</a>
+    </h3>
+    {% render 'price-compare', product: product %}
+    {%- if product.available -%}
+      {%- if product.variants.size == 1 -%}
+        <button type="button" class="quick-add-btn" data-quick-add="{{ variant.id }}">+ Warenkorb</button>
+      {%- else -%}
+        <a href="{{ product.url }}" class="quick-add-btn" style="text-align:center; text-decoration:none;">Variante wählen</a>
+      {%- endif -%}
+    {%- else -%}
+      <button type="button" class="quick-add-btn" disabled>Ausverkauft</button>
+    {%- endif -%}
+  </div>
+</article>

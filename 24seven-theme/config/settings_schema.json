@@ -1,0 +1,44 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "24seven-theme",
+    "theme_version": "1.0.0",
+    "theme_author": "24SEVEN E-Kiosk",
+    "theme_documentation_url": "https://24seven-ekiosk.de",
+    "theme_support_url": "https://24seven-ekiosk.de/pages/kontakt"
+  },
+  {
+    "name": "Logo & Favicon",
+    "settings": [
+      { "type": "image_picker", "id": "logo", "label": "Logo (Fallback: assets/logo.png)" },
+      { "type": "image_picker", "id": "favicon", "label": "Favicon (32×32 px)" }
+    ]
+  },
+  {
+    "name": "Versand & Conversion",
+    "settings": [
+      {
+        "type": "range",
+        "id": "free_shipping_threshold",
+        "label": "Gratisversand ab (€)",
+        "min": 0,
+        "max": 150,
+        "step": 1,
+        "default": 39
+      },
+      {
+        "type": "checkbox",
+        "id": "show_delivery_sticky",
+        "label": "Sticky Lieferzeit-Badge anzeigen",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Tracking (Consent-abhängig)",
+    "settings": [
+      { "type": "text", "id": "meta_pixel_id", "label": "Meta Pixel ID", "info": "Wird erst nach Marketing-Consent geladen." },
+      { "type": "text", "id": "ga4_id", "label": "GA4 Measurement ID (G-XXXX)", "info": "Wird erst nach Marketing-Consent geladen." }
+    ]
+  }
+]

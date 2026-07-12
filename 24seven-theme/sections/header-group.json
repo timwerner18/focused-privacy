@@ -1,0 +1,15 @@
+{
+  "type": "header",
+  "name": "Header-Gruppe",
+  "sections": {
+    "trust_bar": {
+      "type": "trust-bar",
+      "settings": {}
+    },
+    "header": {
+      "type": "header",
+      "settings": {}
+    }
+  },
+  "order": ["trust_bar", "header"]
+}
