@@ -11,7 +11,10 @@ High-Converting Shopify-Shop für **24SEVEN E-Kiosk** (24seven-ekiosk.de) – de
 | Pfad | Inhalt |
 |---|---|
 | `24seven-theme/` | Custom Theme (Online Store 2.0, Liquid + JSON-Templates, Dawn-kompatible Struktur) |
-| `products_seed.csv` | 52 Produkte / 71 SKUs im Shopify-Importformat, inkl. 5 Bundles & Mystery Packs |
+| `products_seed.csv` | **140 Produkte / 339 SKUs** – generiert aus echten Automaten-Verkaufsdaten, inkl. 8 datenbasierten Bundles |
+| `data/automat-statistik-2026-07.csv` | Quelldaten: Verkaufsstatistik der Automaten (6.175 Verkäufe, 35.292 € Umsatz) |
+| `data/preisanalyse.csv` | Abgeleitete Preisliste: Automat-VK → Online-Preis je Variante |
+| `scripts/generate_seed.py` | Generator: Statistik-CSV → Shopify-Import-CSV (bei neuen Monatsdaten einfach erneut ausführen) |
 | `legal-pages/` | Platzhaltertexte für alle Rechtsseiten (**VOM ANWALT PRÜFEN LASSEN**) |
 
 ## Theme-Features
@@ -66,8 +69,10 @@ Danach:
    | Getränke | `getraenke` | `getraenke` |
    | Snacks & Sweets | `snacks-sweets` | `snacks` ODER `sweets` |
    | Tabak & Drehzubehör | `tabak-drehzubehoer` | `tabak` ODER `drehzubehoer` |
+   | Bier & Spirituosen | `bier-spirituosen` | `alkohol` |
    | Mystery Packs | `mystery-packs` | `mystery` |
    | Bundles & Deals | `bundles-deals` | `bundle` |
+   | Sonstiges & Trend | `sonstiges-trend` | `sonstiges` |
    | Bestseller | `bestseller` | `bestseller` |
    | Neu im Kiosk | `neu-im-kiosk` | `neu` |
 
@@ -134,6 +139,9 @@ Empfehlung: High-Risk-Gateway als Hauptzahlart + Vorkasse als Fallback; PayPal/K
 5. **Verpackungsgesetz (LUCID)**-Registrierung für Versandverpackungen.
 6. PayPal/Klarna-Freigabe für Tabak-/Vape-Sortiment schriftlich einholen (siehe Payment-Tabelle).
 7. Preisangabenverordnung: Grundpreise (€/ml bei Liquids, €/kg bei Snacks) ergänzen.
+8. **Snus / Nikotinbeutel (Siberia, Skruf, Pablo):** Der Verkauf von klassischem Snus ist in Deutschland verboten; tabakfreie Nikotinbeutel sind rechtlich umstritten (BVL stuft sie als nicht verkehrsfähiges Lebensmittel ein). **Vor Online-Listing zwingend anwaltlich prüfen** – ggf. aus dem Online-Sortiment nehmen.
+9. **Alkoholversand (Bier & Spirituosen):** JuSchG-konforme Altersprüfung auch hier nötig (Spirituosen 18+, Bier/Wein 16+ – der Shop gated konservativ alles auf 18+). Versandkosten/Bruchrisiko bei Flaschen beachten.
+10. **Mystery Packs mit Erotik-Inhalt:** nur mit 18+-Kennzeichnung (ist gesetzt) und altersgeprüftem Versand.
 
 ---
 

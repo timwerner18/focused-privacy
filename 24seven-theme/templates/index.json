@@ -25,10 +25,12 @@
         "cat_drinks": { "type": "category", "settings": { "collection": "getraenke", "title": "Getränke", "emoji": "🥤" } },
         "cat_snacks": { "type": "category", "settings": { "collection": "snacks-sweets", "title": "Snacks & Sweets", "emoji": "🍫" } },
         "cat_tabak": { "type": "category", "settings": { "collection": "tabak-drehzubehoer", "title": "Tabak & Drehzubehör", "emoji": "🚬" } },
+        "cat_bier": { "type": "category", "settings": { "collection": "bier-spirituosen", "title": "Bier & Spirituosen", "emoji": "🍺" } },
         "cat_mystery": { "type": "category", "settings": { "collection": "mystery-packs", "title": "Mystery Packs", "emoji": "🎁" } },
-        "cat_bundles": { "type": "category", "settings": { "collection": "bundles-deals", "title": "Bundles & Deals", "emoji": "🔥" } }
+        "cat_bundles": { "type": "category", "settings": { "collection": "bundles-deals", "title": "Bundles & Deals", "emoji": "🔥" } },
+        "cat_sonstiges": { "type": "category", "settings": { "collection": "sonstiges-trend", "title": "Sonstiges & Trend", "emoji": "🧿" } }
       },
-      "block_order": ["cat_vapes", "cat_happys", "cat_onlygrams", "cat_drinks", "cat_snacks", "cat_tabak", "cat_mystery", "cat_bundles"],
+      "block_order": ["cat_vapes", "cat_happys", "cat_onlygrams", "cat_drinks", "cat_snacks", "cat_tabak", "cat_bier", "cat_mystery", "cat_bundles", "cat_sonstiges"],
       "settings": { "heading": "Alles wie am Automaten. Nur bequemer." }
     },
     "savings": {

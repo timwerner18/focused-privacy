@@ -41,7 +41,7 @@
 
   {{ content_for_header }}
 </head>
-<body data-age-restricted="{% if template contains 'product' and product.tags contains 'age_restricted' %}true{% elsif collection.handle == 'vapes-liquids' or collection.handle == 'happys-amsterdam' or collection.handle == 'onlygrams-h3bta' or collection.handle == 'tabak-drehzubehoer' %}true{% else %}false{% endif %}">
+<body data-age-restricted="{% if template contains 'product' and product.tags contains 'age_restricted' %}true{% elsif collection.handle == 'vapes-liquids' or collection.handle == 'happys-amsterdam' or collection.handle == 'onlygrams-h3bta' or collection.handle == 'tabak-drehzubehoer' or collection.handle == 'bier-spirituosen' %}true{% else %}false{% endif %}">
   <a class="skip-to-content" href="#MainContent">Zum Inhalt springen</a>
 
   {% render 'age-gate' %}
