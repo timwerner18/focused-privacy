@@ -76,6 +76,10 @@ Danach:
 3. **Filter:** App **Shopify Search & Discovery** (kostenlos) installieren und Filter für Marke (Vendor), Geschmack (Option) und Preis aktivieren – das Collection-Template rendert `collection.filters` automatisch.
 4. **Metafelder für Bundles** (optional): `custom.bundle_hinweis` (Text) und `custom.bundle_inhalt` (Rich Text) anlegen – werden in der Bundle-Box auf Produktseiten angezeigt.
 
+### 4b. Produktfotos hochladen
+
+In `product-images/` liegen echte Produktfotos (RandM Tornado Pods Dr. Blue / Love 66 / Apple Peach, OnlyGrams Prime Frozen Berries / Dragon Fruit Blackberry). Der CSV-Import kann keine lokalen Dateien anhängen — nach dem Import je Produkt unter **Produkte → [Produkt] → Medien** hochladen. Bei `randm-tornado-pod` die drei Fotos den jeweiligen Geschmacks-Varianten zuweisen (Variantenbild), damit beim Sortenwechsel das Bild mitwechselt.
+
 ### 5. Seiten anlegen
 
 Admin → **Onlineshop → Seiten**: für jede Datei in `legal-pages/` eine Seite mit demselben Handle anlegen (impressum, datenschutz, agb, widerruf, widerrufsformular, versand-zahlung, jugendschutz, batteriegesetz, ueber-uns, standorte) und den Inhalt einfügen. Footer-Links zeigen bereits auf diese Handles.
