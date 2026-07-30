@@ -2,21 +2,20 @@
 """
 24SEVEN E-Kiosk – Seed-Generator
 Liest die Automaten-Verkaufsstatistik (data/automat-statistik-*.csv) und erzeugt:
-  - products_seed.csv   (Shopify-Importformat, Sorten-Familien als Varianten)
+  - products_seed.csv    (Shopify-Importformat, JEDER Listeneintrag = eigenes Produkt)
   - data/preisanalyse.csv (Stückpreis-Analyse: Automat-VK -> Online-Preis)
 
 Preislogik:
   - Automaten-Preis = Umsatz / Verkäufe, gerundet auf 5 Cent (= compare_at_price)
   - Online-Preis    = ~7 % darunter (min. 10 Cent), auf 5 Cent gerundet;
                       Artikel <= 1,55 € behalten den Automatenpreis (Marge zu klein)
-  - Bestseller-Tag  = Top 25 Produkte nach verkauften Einheiten
+  - Bestseller-Tag  = Top 25 Artikel nach verkauften Einheiten
   - Social Proof    = Verkaufszahl im Beschreibungstext ab 30 Verkäufen/Monat
 """
 import csv
 import re
 import sys
 import unicodedata
-from collections import defaultdict
 
 STATS = 'data/automat-statistik-2026-07.csv'
 OUT_SEED = 'products_seed.csv'
@@ -69,149 +68,50 @@ def slugify(s):
 def fmt(x):
     return f'{x:.2f}'
 
-# ------------------------------------------------- Varianten-Gruppierung
-# (regex, produkt_key) – erste passende Regel gewinnt, Gruppe 1 = Variantenname
-GROUPS = [
-    (r'^Elfbar Pods (.+)$', 'elfbar-pods'),
-    (r'^Elfbar (.+) Pods$', 'elfbar-pods'),
-    (r'^(?:ELFLIQ|Elfliq) (.+)$', 'elfliq'),
-    (r'^Elfbar 800 (.+)$', 'elfbar-800'),
-    (r'^RandM (.+) Liquid$', 'randm-liquid'),
-    (r'^RandM (.+) Pods$', 'randm-tornado-pod'),
-    (r'^Tornado Pro (Pods)$', 'randm-tornado-pod'),
-    (r'^Red Bull (.+)$', 'red-bull'),
-    (r'^Monster (.+)$', 'monster'),
-    (r'^Gönrgy (.+)$', 'goenrgy'),
-    (r'^Capri Sonne (.+)$', 'capri-sonne'),
-    (r'^Active O2 (.+)$', 'active-o2'),
-    (r'^Calypso (.+)$', 'calypso'),
-    (r'^Durstlöscher (.+)$', 'durstloescher'),
-    (r'^Powerade (.+)$', 'powerade'),
-    (r'^MoguMogu (.+)$', 'mogu-mogu'),
-    (r'^Takis (.+)$', 'takis'),
-    (r'^Doritos (.+)$', 'doritos'),
-    (r'^Pringles (.+)$', 'pringles'),
-    (r'^Trolli (.+)$', 'trolli'),
-    (r'^Hitschies (.+)$', 'hitschies'),
-    (r'^Buldak (.+)$', 'buldak'),
-    (r'^Y[uU]m[yY]um (.+)$', 'yumyum'),
-    (r'^FREEZES (.+)$', 'freezes'),
-    (r'^Happy Amsterdam (.+)$', 'happys-amsterdam'),
-    (r'^1g Onlygrams (.+) Blüte$', 'onlygrams-bluete'),
-    (r'^Onlygrams PREROLLS (.+)$', 'onlygrams-prerolls'),
-    (r'^Onlygrams (.+) Prerolls$', 'onlygrams-prerolls'),
-    (r'^Onlygrams (.+) Vape$', 'onlygrams-vape'),
-    (r'^1g (H3B(?:TA|A)) (.+)$', 'h3bta', 2),
-    (r'^H3BTA (.+)$', 'h3bta'),
-    (r'^(?:2g )?Green8 (.+)$', 'green8'),
-    (r'^4Blockz (.+)$', '4blockz'),
-    (r'^(?:1,5g )?MeshFlash (.+?)(?: Preroll)?$', 'meshflash'),
-    (r'^HighPuffs? (.+?) Vape$', 'highpuffs'),
-    (r'^Jack Daniels (.+)$', 'jack-daniels'),
-    (r'^Jim Beam (.+)$', 'jim-beam'),
-    (r'^Fanta (.+)$', 'fanta'),
-    (r'^Lipton Sparkling (.+)$', 'lipton-sparkling'),
-    (r'^Fuze Tea (.+)$', 'fuze-tea'),
-    (r'^Nescafe (.+)$', 'nescafe'),
-    (r'^Starbucks (.+)$', 'starbucks'),
-    (r'^Mixery (.+)$', 'mixery'),
-    (r'^Somersby (.+)$', 'somersby'),
-    (r'^Skittle (.+)$', 'skittles'),
-    (r'^Vio (.+)$', 'vio'),
-    (r'^Three Sixty (.+)$', 'three-sixty'),
-    (r'^LYNE (.+)$', 'lyne'),
-    (r'^Pablo (.+)$', 'pablo'),
-    (r'^American Spirit (.+)$', 'american-spirit'),
-    (r'^Pueblo (.+)$', 'pueblo'),
-    (r'^Siberia (.+)$', 'siberia'),
-    (r'^Skruf (.+)$', 'skruf'),
-    (r'^Gizeh (.+)$', 'gizeh'),
-    (r'^Massiv (?:Zahnstocher )?(.+?)(?: Zahnstocher)?$', 'massiv-zahnstocher'),
-    (r'^(\d+€) Neuware Pack$', 'neuware-pack'),
-    (r'^Hubba (.+)$', 'hubba-bubba'),
-    (r'^Bifi ?(.*)$', 'bifi'),
-    (r'^Mentos (.+)$', 'mentos'),
-    (r'^Extra Professional (.+)$', 'extra-professional'),
-    (r'^Toffifee ?(.*)$', 'toffifee'),
-    (r'^Yfood (.+)$', 'yfood'),
-    (r'^7Days (.+)$', '7days'),
-    (r'^Manner ?(.*)$', 'manner'),
-    (r'^Bueno (.+)$', 'kinder-bueno'),
-    (r'^M&M (.+)$', 'mms'),
-    (r'^Paulaner (.+)$', 'paulaner'),
-    (r'^Milka (.+)$', 'milka'),
-    (r'^Kong Crunch (.+)$', 'kong-crunch'),
-    (r'^Elfliq (.+)$', 'elfliq'),
+# ---------------------------------------------------------------- Marken
+BRANDS = [
+    ('red bull', 'Red Bull'), ('monster', 'Monster'), ('gönrgy', 'Gönrgy'),
+    ('coca cola', 'Coca-Cola'), ('fanta', 'Fanta'), ('sprite', 'Sprite'),
+    ('mezzo mix', 'Mezzo Mix'), ('dr. pepper', 'Dr Pepper'), ('vita cola', 'Vita Cola'),
+    ('capri sonne', 'Capri-Sun'), ('durstlöscher', 'Durstlöscher'), ('active o2', 'Active O2'),
+    ('powerade', 'Powerade'), ('vio ', 'Vio'), ('volvic', 'Volvic'),
+    ('fuze tea', 'Fuze Tea'), ('lipton', 'Lipton'), ('mountain dew', 'Mountain Dew'),
+    ('calypso', 'Calypso'), ('mogumogu', 'Mogu Mogu'), ('starbucks', 'Starbucks'),
+    ('nescafe', 'Nescafé'), ('yfood', 'YFood'), ('paulaner', 'Paulaner'),
+    ('mixery', 'Mixery'), ('ur-krostizer', 'Ur-Krostitzer'), ('krombacher', 'Krombacher'),
+    ('heineken', 'Heineken'), ('desparados', 'Desperados'), ('somersby', 'Somersby'),
+    ('sternburg', 'Sternburg'), ('radeberger', 'Radeberger'), ('becks', "Beck's"),
+    ('jack daniels', "Jack Daniel's"), ('jim beam', 'Jim Beam'), ('havanna club', 'Havana Club'),
+    ('three sixty', 'Three Sixty'), ('effect', 'Effect'),
+    ('gizeh', 'Gizeh'), ('pueblo', 'Pueblo'), ('marlboro', 'Marlboro'),
+    ('american spirit', 'American Spirit'), ('purize', 'Purize'),
+    ('siberia', 'Siberia'), ('skruf', 'Skruf'), ('pablo', 'Pablo'),
+    ('elfbar', 'Elf Bar'), ('elfliq', 'Elf Bar'), ('elfx', 'Elf Bar'),
+    ('randm', 'RandM / Fumot'), ('tornado', 'RandM / Fumot'), ('flerbar', 'Flerbar'),
+    ('lyne', 'LYNE'), ('onlygrams', 'OnlyGrams'), ('h3bta', 'H3BTA'), ('h3ba', 'H3BTA'),
+    ('happy amsterdam', "Happy's Amsterdam"), ('green8', 'Green8'), ('4blockz', '4Blockz'),
+    ('meshflash', 'MeshFlash'), ('highpuff', 'HighPuffs'), ('kilogrammes', 'Kilogrammes'),
+    ('takis', 'Takis'), ('doritos', 'Doritos'), ('pringles', 'Pringles'),
+    ('trolli', 'Trolli'), ('haribo', 'Haribo'), ('hitschies', 'Hitschler'),
+    ('buldak', 'Samyang'), ('yumyum', 'YumYum'), ('yum yum', 'YumYum'),
+    ('milka', 'Milka'), ('bueno', 'Ferrero'), ('kinder', 'Ferrero'),
+    ('duplo', 'Ferrero'), ('hanuta', 'Ferrero'), ('nutella', 'Ferrero'),
+    ('m&m', "M&M's"), ('twix', 'Twix'), ('bounty', 'Bounty'), ('snickers', 'Snickers'),
+    ('mars', 'Mars'), ('kitkat', 'KitKat'), ('toffifee', 'Storck'), ('manner', 'Manner'),
+    ('7days', '7Days'), ('bifi', 'BiFi'), ('freezes', 'FREEZES'), ('kong crunch', 'Kong Crunch'),
+    ('skittle', 'Skittles'), ('maoam', 'Maoam'), ('mentos', 'Mentos'), ('airwaves', 'Airwaves'),
+    ('extra ', 'Extra'), ('hubba', 'Hubba Bubba'), ('reeses', "Reese's"), ('daim', 'Daim'),
+    ('massiv', 'Massiv'), ('durex', 'Durex'), ('labubu', 'Labubu'),
+    ('mystery pack', '24SEVEN'), ('neuware pack', '24SEVEN'), ('erotik pack', '24SEVEN'),
+    ('24seven', '24SEVEN'),
 ]
 
-# Titel/Vendor/Option je Gruppe
-GROUP_META = {
-    'elfbar-pods': ('Elfbar Elfa Prefilled Pods (2er-Pack)', 'Elf Bar', 'Pods', 'Geschmack'),
-    'elfliq': ('Elfbar ELFLIQ Nikotinsalz-Liquid 10 ml', 'Elf Bar', 'Liquid', 'Geschmack'),
-    'elfbar-800': ('Elfbar 800 Einweg-Vape', 'Elf Bar', 'Einweg-Vape', 'Geschmack'),
-    'randm-liquid': ('RandM Liquid 10 ml', 'RandM / Fumot', 'Liquid', 'Geschmack'),
-    'randm-tornado-pod': ('RandM Tornado Prefilled Pods (2er-Pack)', 'RandM / Fumot', 'Pods', 'Geschmack'),
-    'red-bull': ('Red Bull Energy Drink 250 ml', 'Red Bull', 'Energy Drink', 'Sorte'),
-    'monster': ('Monster Energy 500 ml', 'Monster', 'Energy Drink', 'Sorte'),
-    'goenrgy': ('Gönrgy Energy 500 ml', 'Gönrgy', 'Energy Drink', 'Sorte'),
-    'capri-sonne': ('Capri-Sonne 330 ml', 'Capri-Sun', 'Softdrink', 'Sorte'),
-    'active-o2': ('Active O2 500 ml', 'Active O2', 'Wasser', 'Sorte'),
-    'calypso': ('Calypso Lemonade 473 ml', 'Calypso', 'Trend-Drink', 'Sorte'),
-    'durstloescher': ('Durstlöscher 500 ml', 'Durstlöscher', 'Eistee', 'Sorte'),
-    'powerade': ('Powerade 500 ml', 'Powerade', 'Sportgetränk', 'Sorte'),
-    'mogu-mogu': ('Mogu Mogu 320 ml', 'Mogu Mogu', 'Trend-Drink', 'Sorte'),
-    'takis': ('Takis Chips', 'Takis', 'Chips', 'Sorte'),
-    'doritos': ('Doritos Chips', 'Doritos', 'Chips', 'Sorte'),
-    'pringles': ('Pringles', 'Pringles', 'Chips', 'Sorte'),
-    'trolli': ('Trolli Fruchtgummi', 'Trolli', 'Süßwaren', 'Sorte'),
-    'hitschies': ('Hitschies', 'Hitschler', 'Süßwaren', 'Sorte'),
-    'buldak': ('Buldak Ramen', 'Samyang', 'Instant-Nudeln', 'Sorte'),
-    'yumyum': ('YumYum Instant-Nudeln', 'YumYum', 'Instant-Nudeln', 'Sorte'),
-    'freezes': ('FREEZES Candy', 'FREEZES', 'Süßwaren', 'Sorte'),
-    'happys-amsterdam': ("Happy's Amsterdam", "Happy's Amsterdam", 'Cannabinoid-Produkt', 'Sorte'),
-    'onlygrams-bluete': ('Onlygrams Blüte 1 g', 'OnlyGrams', 'Cannabinoid-Produkt', 'Sorte'),
-    'onlygrams-prerolls': ('Onlygrams Prerolls', 'OnlyGrams', 'Cannabinoid-Produkt', 'Sorte'),
-    'onlygrams-vape': ('Onlygrams Vape 1 ml', 'OnlyGrams', 'Cannabinoid-Produkt', 'Sorte'),
-    'h3bta': ('H3BTA 1 g', 'H3BTA', 'Cannabinoid-Produkt', 'Sorte'),
-    'green8': ('Green8 2 g', 'Green8', 'Cannabinoid-Produkt', 'Sorte'),
-    '4blockz': ('4Blockz', '4Blockz', 'Cannabinoid-Produkt', 'Sorte'),
-    'meshflash': ('MeshFlash', 'MeshFlash', 'Cannabinoid-Produkt', 'Sorte'),
-    'highpuffs': ('HighPuffs Vape', 'HighPuffs', 'Cannabinoid-Produkt', 'Sorte'),
-    'jack-daniels': ('Jack Daniel\'s Mix-Dose 330 ml', 'Jack Daniel\'s', 'Longdrink-Dose', 'Sorte'),
-    'jim-beam': ('Jim Beam Mix-Dose 330 ml', 'Jim Beam', 'Longdrink-Dose', 'Sorte'),
-    'fanta': ('Fanta', 'Fanta', 'Softdrink', 'Sorte'),
-    'lipton-sparkling': ('Lipton Sparkling 330 ml', 'Lipton', 'Eistee', 'Sorte'),
-    'fuze-tea': ('Fuze Tea 400 ml', 'Fuze Tea', 'Eistee', 'Sorte'),
-    'nescafe': ('Nescafé Dose 250 ml', 'Nescafé', 'Kaffee-Drink', 'Sorte'),
-    'starbucks': ('Starbucks Kaffee-Drink 220 ml', 'Starbucks', 'Kaffee-Drink', 'Sorte'),
-    'mixery': ('Mixery 500 ml', 'Mixery', 'Biermischgetränk', 'Sorte'),
-    'somersby': ('Somersby Cider 330 ml', 'Somersby', 'Cider', 'Sorte'),
-    'skittles': ('Skittles', 'Skittles', 'Süßwaren', 'Sorte'),
-    'vio': ('Vio Wasser 500 ml', 'Vio', 'Wasser', 'Sorte'),
-    'three-sixty': ('Three Sixty Vodka Mix-Dose', 'Three Sixty', 'Longdrink-Dose', 'Sorte'),
-    'lyne': ('LYNE Vape', 'LYNE', 'Einweg-Vape', 'Geschmack'),
-    'pablo': ('Pablo Nikotinbeutel', 'Pablo', 'Nikotinbeutel', 'Sorte'),
-    'american-spirit': ('American Spirit Drehtabak 30 g', 'American Spirit', 'Drehtabak', 'Sorte'),
-    'pueblo': ('Pueblo Drehtabak 30 g', 'Pueblo', 'Drehtabak', 'Sorte'),
-    'siberia': ('Siberia Snus', 'Siberia', 'Nikotinbeutel', 'Sorte'),
-    'skruf': ('Skruf Snus', 'Skruf', 'Nikotinbeutel', 'Sorte'),
-    'gizeh': ('Gizeh Papers & Filter', 'Gizeh', 'Drehzubehör', 'Sorte'),
-    'massiv-zahnstocher': ('Massiv Zahnstocher (aromatisiert)', 'Massiv', 'Trend-Artikel', 'Sorte'),
-    'neuware-pack': ('Neuware Mystery Pack', '24SEVEN', 'Mystery Pack', 'Wert'),
-    'hubba-bubba': ('Hubba Bubba Kaugummi', 'Hubba Bubba', 'Süßwaren', 'Sorte'),
-    'bifi': ('BiFi', 'BiFi', 'Snack', 'Sorte'),
-    'mentos': ('Mentos', 'Mentos', 'Süßwaren', 'Sorte'),
-    'extra-professional': ('Extra Professional Kaugummi', 'Extra', 'Süßwaren', 'Sorte'),
-    'toffifee': ('Toffifee', 'Storck', 'Süßwaren', 'Sorte'),
-    'yfood': ('YFood Trinkmahlzeit 330 ml', 'YFood', 'Trend-Drink', 'Sorte'),
-    '7days': ('7Days Croissant', '7Days', 'Snack', 'Sorte'),
-    'manner': ('Manner Waffeln', 'Manner', 'Süßwaren', 'Sorte'),
-    'kinder-bueno': ('Kinder Bueno', 'Ferrero', 'Süßwaren', 'Sorte'),
-    'mms': ("M&M's", "M&M's", 'Süßwaren', 'Sorte'),
-    'paulaner': ('Paulaner Limo 500 ml', 'Paulaner', 'Softdrink', 'Sorte'),
-    'milka': ('Milka', 'Milka', 'Süßwaren', 'Sorte'),
-    'kong-crunch': ('Kong Crunch Snack', 'Kong Crunch', 'Snack', 'Sorte'),
-}
+def vendor_of(name):
+    n = name.lower()
+    for prefix, vendor in BRANDS:
+        if prefix in n:
+            return vendor
+    return name.split()[0]
 
 # ------------------------------------------------------ Kategorisierung
 CANNA = ['h3bta', 'h3ba', 'onlygrams', 'kilogrammes', 'green8', '4blockz', 'meshflash', 'highpuff', 'og 420']
@@ -228,33 +128,30 @@ MYSTERY = ['neuware pack', 'mystery pack', 'erotik pack']
 SONSTIGES = ['duftbaum', 'durex', 'panini', 'zahnstocher']
 
 
-def categorize(name, group):
+def categorize(name):
     n = name.lower()
-    if group == 'happys-amsterdam' or 'happy amsterdam' in n:
-        return "Happy's Amsterdam", 'happys, age_restricted', '🌴'
+    if 'happy amsterdam' in n:
+        return "Happy's Amsterdam", 'happys, age_restricted', '🌴', 'Cannabinoid-Produkt'
     if any(k in n for k in MYSTERY):
         tags = 'mystery'
         if 'erotik' in n:
             tags += ', age_restricted'
-        return 'Mystery Packs', tags, '🎁'
+        return 'Mystery Packs', tags, '🎁', 'Mystery Pack'
     if any(k in n for k in CANNA):
-        return 'Onlygrams & H3BTA', 'onlygrams, age_restricted', '🫐'
+        return 'Onlygrams & H3BTA', 'onlygrams, age_restricted', '🫐', 'Cannabinoid-Produkt'
     if any(k in n for k in VAPE):
-        tags = 'vape, age_restricted'
-        if 'leer pod' not in n and 'refillable' not in n and 'elfx' not in n and 'master' not in n:
-            tags = 'vape, nikotin, age_restricted'
-        return 'Vapes & Liquids', tags, '💨'
+        return 'Vapes & Liquids', 'vape, nikotin, age_restricted', '💨', 'Vape'
     if any(k in n for k in TABAK):
-        if group == 'gizeh' or 'purize' in n:
-            return 'Tabak & Drehzubehör', 'drehzubehoer', '📜'
-        return 'Tabak & Drehzubehör', 'tabak, age_restricted', '🚬'
+        if 'gizeh' in n or 'purize' in n:
+            return 'Tabak & Drehzubehör', 'drehzubehoer', '📜', 'Drehzubehör'
+        return 'Tabak & Drehzubehör', 'tabak, age_restricted', '🚬', 'Tabakware'
     if any(k in n for k in ALK):
-        return 'Bier & Spirituosen', 'alkohol, age_restricted', '🍺'
+        return 'Bier & Spirituosen', 'alkohol, age_restricted', '🍺', 'Alkoholisches Getränk'
     if any(k in n for k in SONSTIGES):
-        return 'Sonstiges & Trend', 'sonstiges', '🧿'
+        return 'Sonstiges & Trend', 'sonstiges', '🧿', 'Trend-Artikel'
     if any(k in n for k in DRINKS):
-        return 'Getränke', 'getraenke', '🥤'
-    return 'Snacks & Sweets', 'snacks', '🍫'
+        return 'Getränke', 'getraenke', '🥤', 'Getränk'
+    return 'Snacks & Sweets', 'snacks', '🍫', 'Snack'
 
 
 DESC = {
@@ -268,46 +165,13 @@ DESC = {
     'Mystery Packs': 'Überraschungsinhalt – genau das ist der Spaß. Widerrufsrecht bleibt unberührt.',
     'Sonstiges & Trend': 'Trend-Artikel aus dem Kiosk-Sortiment.',
 }
-
-# Drehzubehör braucht keinen Tabak-Warnhinweis
 DESC_DREH = 'Zubehör aus dem Kiosk-Sortiment – Papers, Filter & mehr.'
 
 
 def main():
     rows = parse_stats(STATS)
-
-    # Gruppieren
-    products = {}   # key -> dict(title, vendor, type, option, variants=[(vname, qty, rev)], names=[])
-    order = []
-
-    def add(key, title, vendor, ptype, option, vname, name, qty, rev):
-        if key not in products:
-            products[key] = dict(title=title, vendor=vendor, type=ptype, option=option,
-                                 variants=[], names=[])
-            order.append(key)
-        products[key]['variants'].append((vname, qty, rev))
-        products[key]['names'].append(name)
-
-    for name, qty, rev, unit in rows:
-        matched = False
-        for rule in GROUPS:
-            pat, key = rule[0], rule[1]
-            grp_idx = rule[2] if len(rule) > 2 else 1
-            m = re.match(pat, name)
-            if m:
-                vname = (m.group(grp_idx) or 'Original').strip() or 'Original'
-                meta = GROUP_META[key]
-                add(key, meta[0], meta[1], meta[2], meta[3], vname, name, qty, rev)
-                matched = True
-                break
-        if not matched:
-            key = slugify(name)
-            vendor = name.split()[0]
-            add(key, name, vendor, '', 'Title', 'Default Title', name, qty, rev)
-
-    # Bestseller: Top 25 nach Gesamt-Verkäufen
-    totals = {k: sum(v[1] for v in p['variants']) for k, p in products.items()}
-    bestsellers = set(sorted(totals, key=lambda k: -totals[k])[:25])
+    rows.sort(key=lambda r: -r[1])
+    bestseller_names = {r[0] for r in rows[:25]}
 
     header = ['Handle', 'Title', 'Body (HTML)', 'Vendor', 'Type', 'Tags', 'Published',
               'Option1 Name', 'Option1 Value', 'Variant SKU', 'Variant Inventory Tracker',
@@ -315,64 +179,60 @@ def main():
               'Variant Price', 'Variant Compare At Price', 'Variant Requires Shipping',
               'Variant Taxable', 'Status', 'Collection']
     out = [header]
-    analyse = [['Produkt', 'Variante', 'Verkäufe/Monat', 'Umsatz €', 'Automat VK €', 'Online-Preis €', 'Collection']]
+    analyse = [['Produkt', 'Verkäufe/Monat', 'Umsatz €', 'Automat VK €', 'Online-Preis €', 'Collection']]
+    seen = set()
+    counts = {}
 
-    for key in order:
-        p = products[key]
-        first_name = p['names'][0]
-        collection, tags, emoji = categorize(first_name, key)
-        total_qty = totals[key]
-        tag_list = tags
-        if key in bestsellers:
-            tag_list += ', bestseller'
+    for name, qty, rev, unit in rows:
+        collection, tags, emoji, ptype = categorize(name)
+        automat, online = price_pair(unit)
+        handle = slugify(name)
+        if handle[0].isdigit():
+            handle = 'p-' + handle
+        if handle in seen:
+            handle += '-2'
+        seen.add(handle)
+        counts[collection] = counts.get(collection, 0) + 1
 
+        tag_list = tags + (', bestseller' if name in bestseller_names else '')
         desc_extra = DESC_DREH if 'drehzubehoer' in tags else DESC.get(collection, '')
-        proof = ''
-        if total_qty >= 30:
-            proof = f'<p><strong>🔥 {total_qty}× diesen Monat an unseren Automaten gekauft.</strong></p>'
-        body = f'<p>{p["title"]} – wie am Automaten in Aue &amp; Zwickau, online günstiger.</p>{proof}<p>{desc_extra}</p>'
+        proof = f'<p><strong>🔥 {qty}× diesen Monat an unseren Automaten gekauft.</strong></p>' if qty >= 30 else ''
+        body = f'<p>{name} – wie am Automaten in Aue &amp; Zwickau, online günstiger.</p>{proof}<p>{desc_extra}</p>'
+        sku = handle.upper().replace('-', '')[:20]
+        inv = max(3, min(60, qty // 2))
 
-        handle = key if not key[0].isdigit() else 'p-' + key
-        for i, (vname, qty, rev) in enumerate(sorted(p['variants'], key=lambda v: -v[1])):
-            automat, online = price_pair(rev / qty)
-            sku = (handle[:14] + '-' + slugify(vname)[:16]).upper().replace('-', '')[:20]
-            inv = max(3, min(60, qty // 2))
-            row = [handle]
-            if i == 0:
-                row += [p['title'], body, p['vendor'], p['type'], tag_list, 'TRUE']
-            else:
-                row += ['', '', '', '', '', '']
-            row += [p['option'], vname, sku, 'shopify', str(inv), 'deny', 'manual',
+        out.append([handle, name, body, vendor_of(name), ptype, tag_list, 'TRUE',
+                    'Title', 'Default Title', sku, 'shopify', str(inv), 'deny', 'manual',
                     fmt(online), fmt(automat) if automat > online else '',
-                    'TRUE', 'TRUE', 'active', collection if i == 0 else '']
-            out.append(row)
-            analyse.append([p['title'], vname, qty, fmt(rev), fmt(automat), fmt(online), collection])
+                    'TRUE', 'TRUE', 'active', collection])
+        analyse.append([name, qty, fmt(rev), fmt(automat), fmt(online), collection])
 
     # ------------------------------------------------ Daten-basierte Bundles
-    def bundle(handle, title, body, vendor, tags, online, compare, collection='Bundles & Deals', qty=15):
+    def bundle(handle, title, body, vendor, tags, online, compare, qty=15):
         out.append([handle, title, body, vendor, 'Bundle', 'bundle, ' + tags, 'TRUE',
                     'Title', 'Default Title', ('BND-' + handle)[:20].upper().replace('-', ''),
                     'shopify', str(qty), 'deny', 'manual', fmt(online), fmt(compare),
-                    'TRUE', 'TRUE', 'active', collection])
-        analyse.append([title, 'Bundle', '', '', fmt(compare), fmt(online), collection])
+                    'TRUE', 'TRUE', 'active', 'Bundles & Deals'])
+        analyse.append([title, '', '', fmt(compare), fmt(online), 'Bundles & Deals'])
+        counts['Bundles & Deals'] = counts.get('Bundles & Deals', 0) + 1
 
     bundle('energy-mix-6er', 'Energy Mix 6er-Pack',
-           '<p>Bundle: 6 Dosen aus unseren Energy-Bestsellern – Red Bull Original/White, Monster White/Loco/Original + Überraschung. Über 600 Energy-Verkäufe im Monat an unseren Automaten – hier als Spar-Sixpack. Zzgl. Pfand.</p>',
+           '<p>Bundle: 6 Dosen aus unseren Energy-Bestsellern – Red Bull Original/White, Monster White/Loco/Original + Überraschung. Zzgl. Pfand.</p>',
            '24SEVEN', 'getraenke, energy', 13.90, 16.00)
     bundle('drehset-klassiker', 'Drehset Klassiker – Pueblo + Gizeh (18+)',
-           '<p>Bundle: Pueblo Classic 30 g + Gizeh King Size Slim + Gizeh Slim Filter – die drei meistgekauften Dreh-Artikel unserer Automaten in einem Set.</p><p>Rauchen fügt Ihnen und den Menschen in Ihrer Umgebung erheblichen Schaden zu. Abgabe nur ab 18 Jahren.</p>',
+           '<p>Bundle: Pueblo Classic + Gizeh King Size Slim + Gizeh Slim Filter – die drei meistgekauften Dreh-Artikel unserer Automaten.</p><p>Rauchen fügt Ihnen und den Menschen in Ihrer Umgebung erheblichen Schaden zu. Abgabe nur ab 18 Jahren.</p>',
            '24SEVEN', 'tabak, age_restricted', 9.90, 10.75)
     bundle('h3bta-haze-trio', 'H3BTA Haze Trio – 3× 1 g (18+)',
-           '<p>Bundle: je 1 g Amnezia Haze, Lemon Haze und Gelato Haze – unsere drei H3BTA-Topseller (zusammen über 150 Verkäufe/Monat).</p><p>Abgabe nur ab 18 Jahren. Verkauf nur im rechtlich zulässigen Rahmen.</p>',
+           '<p>Bundle: je 1 g Amnezia Haze, Lemon Haze und Gelato Haze – unsere drei H3BTA-Topseller.</p><p>Abgabe nur ab 18 Jahren. Verkauf nur im rechtlich zulässigen Rahmen.</p>',
            'H3BTA', 'onlygrams, age_restricted', 34.90, 38.70)
     bundle('happys-amsterdam-3er-set', "Happy's Amsterdam 3er-Set (18+)",
            '<p>Bundle: 3 Sorten nach Wahl unseres Teams (z. B. Amnezia Haze, Golden Kush, Cali Exotic). Am Automaten 89,70 € – online deutlich günstiger.</p><p>Abgabe nur ab 18 Jahren. Verkauf nur im rechtlich zulässigen Rahmen.</p>',
            "Happy's Amsterdam", 'happys, age_restricted', 79.90, 89.70, qty=8)
     bundle('onlygrams-vape-duo', 'Onlygrams Vape Duo – 2 Sorten (18+)',
-           '<p>Bundle: 2× Onlygrams Vape nach Wahl (z. B. Peach Ice – unser Umsatz-Champion mit fast 1.900 € Monatsumsatz – plus Frozen Berries oder Dragon Fruit Blackberry).</p><p>Abgabe nur ab 18 Jahren. Verkauf nur im rechtlich zulässigen Rahmen.</p>',
+           '<p>Bundle: 2× Onlygrams Vape nach Wahl (z. B. Peach Ice – unser Umsatz-Champion – plus Frozen Berries oder Dragon Fruit Blackberry).</p><p>Abgabe nur ab 18 Jahren. Verkauf nur im rechtlich zulässigen Rahmen.</p>',
            'OnlyGrams', 'onlygrams, age_restricted', 54.90, 59.80, qty=10)
     bundle('elfbar-pods-trio', 'Elfbar Pods Trio – 3× 2er-Pack (18+)',
-           '<p>Bundle: 3× Elfa Prefilled Pods Doppelpack in 3 Sorten nach Wahl unseres Teams (6 Pods gesamt).</p><p>Dieses Produkt enthält Nikotin: einen Stoff, der sehr stark abhängig macht. Abgabe nur ab 18 Jahren. TPD2-konform.</p>',
+           '<p>Bundle: 3× Elfbar Pods Doppelpack in 3 Sorten nach Wahl unseres Teams (6 Pods gesamt).</p><p>Dieses Produkt enthält Nikotin: einen Stoff, der sehr stark abhängig macht. Abgabe nur ab 18 Jahren. TPD2-konform.</p>',
            'Elf Bar', 'vape, nikotin, age_restricted', 31.90, 35.85)
     bundle('snack-attack-box', 'Snack Attack Box',
            '<p>Bundle: 2× Chips (Takis/Doritos) + 2× Candy (Trolli/Hitschies) + 2× Drink (Capri-Sonne/Durstlöscher) – die komplette Movie-Night, fertig gepackt.</p>',
@@ -386,14 +246,8 @@ def main():
     with open(OUT_ANALYSE, 'w', newline='', encoding='utf-8') as f:
         csv.writer(f).writerows(analyse)
 
-    n_products = len(order) + 8
-    print(f'{OUT_SEED}: {len(out)-1} SKU-Zeilen, {n_products} Produkte (davon 8 Bundles)')
-    print(f'{OUT_ANALYSE}: {len(analyse)-1} Zeilen')
-    cols = defaultdict(int)
-    for key in order:
-        c, _, _ = categorize(products[key]['names'][0], key)
-        cols[c] += 1
-    for c, n in sorted(cols.items(), key=lambda x: -x[1]):
+    print(f'{OUT_SEED}: {len(out)-1} Produkte (je 1 SKU, davon 8 Bundles)')
+    for c, n in sorted(counts.items(), key=lambda x: -x[1]):
         print(f'  {n:>3}  {c}')
 
 
